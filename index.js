@@ -1,15 +1,17 @@
-const ERROR1 = 'Помилковий текст задачі. Речення мають бути розділенні одним із знаків "!?.".  Використовуйте ці знаки виключно у кінці речення. Також задача не може мати більше двох питань.'
+const ERROR1 = 'Помилковий текст задачі. Речення мають бути розділенні одним із знаків "!?.".  Використовуйте ці знаки виключно у кінці речення. Текст має складатись щонайменьше з 3 речень '
 const ERROR2 = "Перше речення умови-це вхідні данні, обов'язково має включати в себе принаймні одне число, якщо на початку немає предметів використайте у реченні щось накшталт \"0 предметів\" "
 const ERROR3 = "Друге речення задачі описує дію і обов'язково має тільки одну дію, дії можуть бути такими \"з'їв,  поклав\".";
 const ERROR4 = "Друге речення задачі описує дію і обов'язково має в собі мінімум одне число.";
 const ERROR5 = "Третє та подальші речення задачі це запитання, обов'язково починаються зі слова \"Скільки\". Також перевірте крапки між попередніми реченнями.";
-const ERROR6 = "Кожне речення запитання має включити в себе тільки один об'єкт це \"хлопчик\" або \"столі\"."
+const ERROR6 = "Кожне речення запитання має включити в себе тільки один об'єкт це \"хлопчик\" або \"столі\".";
+const ERROR7 = "Питання мають обов'язково включати одну з фраз, також слова з цих фраз не мають двічі зустрічатись в одному реченні \" залишилось на столі\",\"з'їв хлопчик\",\"поклав хлопчик\".";
 
 
 const FRUITS = ["яблука", "груші", "апельсини", "мандарини"];
 const ACTIONS = ["з'їв", "поклав"];
 const TARGET = ["столі", "хлопчик"];
-const DO = ["залишилось", "з'їв", "поклав"];
+const DOBOY = ["з'їв", "поклав"];
+const DOTABLE = ["залишилось"];
 const THINKS = [...FRUITS, "фрукти"];
 
 const startButton = document.querySelector('.form--button');
@@ -35,7 +37,7 @@ function onClickSubmit(ev) {
             // parse(" 3 апельсини 5 яблук,10 мандарин та 4 олівці лежали на столі. Хлопчик з'їв 4 мандарини та 2 апельсини. Скільки всього фруктів з'їв хлопчик? Скільки залишилось мандарин на столі?")
         };
     } else {
-        console.log(startText);
+
         textField.placeholder = "";
         errorState = false;
         startButton.innerText = "Відправити";
@@ -52,7 +54,7 @@ function parse(startText) {
         errorHandler(ERROR1);
         return
     };
-    if (textArray.length < 3 || textArray.length > 5) {
+    if (textArray.length < 3) {
         errorHandler(ERROR1);
         return
     };
@@ -82,30 +84,49 @@ function parse(startText) {
     console.log(normalizedActionData);
 
     for (let index = 2; index < textArray.length; index++) {
-        let targetArray = [];
+        let questionAction = [];
         const wordsArray = transformToArray(textArray[index].trim(''))
         if (wordsArray[0] !== "Скільки") {
             errorHandler(ERROR5);
             return
         };
 
+        const questionObject = comparationArrays(TARGET, wordsArray);
 
-        TARGET.forEach((element) => {
-            const regexp = createRegexp(element);
-
-            wordsArray.forEach((word) => {
-                if (regexp.test(word)) { targetArray.push(element) }
-            })
-        })
-        if (targetArray.length !== 1) {
+        if (questionObject.length !== 1) {
             errorHandler(ERROR6);
             return
-        }
-        console.log(targetArray);
+        };
+        console.log(questionObject);
+
+        if (questionObject[0] === "столі") {
+            const DOTABLE = ["залишилось"];
+            questionAction = comparationArrays(DOTABLE, wordsArray)
+        } else if (questionObject[0] === "хлопчик") {
+            questionAction = comparationArrays(DOBOY, wordsArray)
+        };
+
+        if (questionAction.length !== 1) {
+            errorHandler(ERROR7);
+            return
+        };
+        console.log(questionAction);
+
+
     }
 };
 
+function comparationArrays(startDataArr, currentArr) {
+    let resArray = [];
+    startDataArr.forEach((element) => {
+        const regexp = createRegexp(element);
 
+        currentArr.forEach((word) => {
+            if (regexp.test(word)) { resArray.push(element) }
+        })
+    })
+    return resArray
+}
 
 
 
