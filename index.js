@@ -5,7 +5,7 @@ const DOBOY = ["з'їв", "поклав"];
 const DOTABLE = ["залишилось"];
 const THINKS = [...FRUITS, "фрукти"];
 
-const ERROR0 = "Невідома помилка";
+
 const ERROR1 = 'Помилковий текст задачі. Речення мають бути розділенні одним із знаків "!?.".  Використовуйте ці знаки виключно у кінці речення. Текст має складатись щонайменьше з 3 речень '
 const ERROR2 = "Перше речення умови-це вхідні данні, обов'язково має включати в себе принаймні одне число, якщо на початку немає предметів використайте у реченні щось накшталт \"0 предметів\" "
 const ERROR3 = "Друге речення задачі описує дію і обов'язково має тільки одну дію, дії можуть бути такими \"з'їв,  поклав\".";
@@ -14,19 +14,19 @@ const ERROR5 = "Третє та подальші речення задачі ц�
 const ERROR6 = "Кожне речення запитання має включити в себе тільки один об'єкт це \"хлопчик\" або \"столі\".";
 const ERROR7 = "Питання мають обов'язково включати одну з фраз, також слова з цих фраз не мають двічі зустрічатись в одному реченні \" залишилось на столі\",\"з'їв хлопчик\",\"поклав хлопчик\".";
 const ERROR8 = `Питання мають обов'язково включати як мінімум 1 предмет зі списку ${THINKS} `;
-
+const ERROR9 = "На столі ми отримали від'ємну кількість предметів, задача не має сенсу.";
 
 const startButton = document.querySelector('.form--button');
 const textField = document.querySelector('.form--text');
 
-let errorState = false;
+let state = "pending";
 let startText = "";
 
 
 function onClickSubmit(ev) {
     ev.preventDefault();
 
-    if (!errorState) {
+    if (state === "pending") {
         startText = textField.value.trim();
         if (startText === "") {
             textField.placeholder = "Введіть текст задачі";
@@ -36,14 +36,25 @@ function onClickSubmit(ev) {
             textField.placeholder = "";
             textField.value = "";
             parse(startText);
+            // parse("Задача: 3 апельсини 5 яблук,10 мандарин та 4 олівці лежали на столі. Хлопчик з'їв 4 мандарини та 2 апельсини.Скільки всього фруктів з'їв хлопчик? Скільки залишилось мандарин на столі? Скільки всього фруктів з'їв хлопчик ?")
             // parse(" 3 апельсини 5 яблук,10 мандарин та 4 олівці лежали на столі. Хлопчик з'їв 4 мандарини та 2 апельсини. Скільки всього фруктів з'їв хлопчик? Скільки залишилось мандарин на столі?")
         };
-    } else {
+    } else if (state === "error") {
 
         textField.placeholder = "";
-        errorState = false;
+        state = "pending";
         startButton.innerText = "Відправити";
         startButton.style.background = 'darkorange';
+        textField.style.borderColor = 'darkorange';
+        textField.value = startText;
+    } else if (state === "success") {
+
+        textField.placeholder = "Введіть текст задачі";
+        state = "pending";
+        startButton.innerText = "Відправити";
+        startButton.style.background = 'darkorange';
+        textField.style.borderColor = 'darkorange';
+        startText = "";
         textField.value = startText;
     }
 };
@@ -66,10 +77,9 @@ function parse(startText) {
     if (initData.length < 1) {
         errorHandler(ERROR2);
         return
-    };
+    }
 
     const normalizedInitData = normalize(initData);
-
 
     const action = actionHandler(transformToArray(textArray[1]));
 
@@ -77,7 +87,6 @@ function parse(startText) {
         errorHandler(ERROR3);
         return
     }
-
 
     const actionData = initDataHandler(transformToArray(textArray[1]));
     if (actionData.length < 1) {
@@ -87,11 +96,12 @@ function parse(startText) {
 
     const normalizedActionData = normalize(actionData)
 
-
     for (let index = 2; index < textArray.length; index++) {
         let questionAction = [];
-        const wordsArray = transformToArray(textArray[index].trim(''))
+        const wordsArray = transformToArray(textArray[index].trim(''));
+
         if (wordsArray[0] !== "Скільки") {
+
             errorHandler(ERROR5);
             return
         };
@@ -124,7 +134,6 @@ function parse(startText) {
         allQuestions.push([...questionObject, ...questionAction, ...questionOThinks]);
     }
     processingData(normalizedInitData, action, normalizedActionData, allQuestions)
-
 };
 
 function processingData(initData, action, actionData, allQuestions) {
@@ -144,19 +153,29 @@ function processingData(initData, action, actionData, allQuestions) {
             middlObject[key] = Number(initData[key]) + Number(actionData[key])
         };
         const table = { ...initData, ...middlObject };
+
         addAll(table);
-        console.log(q);
+
         genereyteAnsver(table, actionData, allQuestions)
 
-    } else { errorHandler(ERROR0); return };
+    };
 
 };
 
 function genereyteAnsver(table, actionData, allQuestions) {
+
+    for (const key in table) {
+        if (table[key] < 0) {
+            errorHandler(ERROR9);
+            return
+        }
+    }
+
     addAll(actionData);
-    let ansver = "Відповідь:";
+    let ansver = "\n  Відповідь:";
     let ansverPiece = "";
-    console.log(table, actionData, allQuestions);
+
+
     allQuestions.forEach((questionArr) => {
 
         if (questionArr[0] === "столі") {
@@ -168,9 +187,16 @@ function genereyteAnsver(table, actionData, allQuestions) {
         ansver += ansverPiece;
 
     })
-    console.log(ansver);
-    startText = ""
-}
+
+    textField.value = startText + ansver;
+
+    state = "success";
+    startButton.innerText = "Наступна задача";
+    startButton.style.background = 'green';
+    textField.style.borderColor = 'green';
+
+};
+
 
 function addAll(obj) {
     let summ = 0;
@@ -242,9 +268,10 @@ function actionHandler(textArray) {
 
 function errorHandler(err) {
     textField.placeholder = err;
-    errorState = true;
+    state = "error";
     startButton.innerText = "Повернутись";
     startButton.style.background = 'red';
+    textField.style.borderColor = 'red';
 }
 
 
