@@ -142,21 +142,18 @@ function processingData(initData, action, actionData, allQuestions) {
 
     if (action[0] === "з'їв") {
         for (const key in actionData) {
-            middlObject[key] = Number(initData[key]) ? Number(initData[key]) : 0 - Number(actionData[key])
+            middlObject[key] = (Number(initData[key]) ? Number(initData[key]) : 0) - Number(actionData[key]);
         };
         const table = { ...initData, ...middlObject };
         addAll(table);
-
         genereyteAnsver(table, actionData, allQuestions)
 
     } else if (action[0] === "поклав") {
         for (const key in actionData) {
-            middlObject[key] = Number(initData[key]) ? Number(initData[key]) : 0 + Number(actionData[key])
+            middlObject[key] = (Number(initData[key]) ? Number(initData[key]) : 0) + Number(actionData[key])
         };
         const table = { ...initData, ...middlObject };
-
         addAll(table);
-
         genereyteAnsver(table, actionData, allQuestions)
     };
 
