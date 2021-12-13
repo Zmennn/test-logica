@@ -74,7 +74,7 @@ function parse(startText) {
     };
 
     const initData = initDataHandler(transformToArray(textArray[0]));
-    console.log(initData);
+
     if (initData.length < 1) {
         errorHandler(ERROR2);
         return
@@ -146,7 +146,6 @@ function processingData(initData, action, actionData, allQuestions) {
         };
         const table = { ...initData, ...middlObject };
         addAll(table);
-        console.log(table);
 
         genereyteAnsver(table, actionData, allQuestions)
 
@@ -159,7 +158,6 @@ function processingData(initData, action, actionData, allQuestions) {
         addAll(table);
 
         genereyteAnsver(table, actionData, allQuestions)
-
     };
 
 };
